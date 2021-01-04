@@ -245,4 +245,6 @@ void AFlock::Tick(float DeltaTime)
 	/*int32 tempState = currentState;
 	currentState = previousState;
 	previousState = tempState;*/
+
+
 }
