@@ -46,6 +46,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Components)
 	TSubclassOf<AActor> DummyClass;
 
+	UFUNCTION(Server, Reliable)
+	void ServerThrowObjects();
+
 	/* Throws all surrounding objects to the enemy in front of player */
 	UFUNCTION(BlueprintCallable, Category=Magic)
 	void ThrowObjects();

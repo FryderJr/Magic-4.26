@@ -88,9 +88,17 @@ void AMagicCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AMagicCharacter::OnResetVR);
 }
 
+void AMagicCharacter::ServerThrowObjects_Implementation()
+{
+	ThrowObjects();
+}
 
 void AMagicCharacter::ThrowObjects()
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerThrowObjects();
+	}
 	TArray<AActor*> OutActors;
 	TArray<UPrimitiveComponent*> OutComponents;
 	MagicSphere->SetSphereRadius(5000.0);
