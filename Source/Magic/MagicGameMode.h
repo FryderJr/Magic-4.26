@@ -11,8 +11,12 @@ class AMagicGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
+protected:
+
 public:
 	AMagicGameMode();
+
+	virtual void StartPlay();
 };
 
 

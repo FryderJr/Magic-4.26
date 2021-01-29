@@ -62,11 +62,6 @@ void AFlock::BeginPlay()
 			one.position = agentObjects.Last()->GetActorLocation();
 			FlockPosition += one.position;
 			//one.velocity = agentObjects.Last()->GetActorForwardVector();
-			print(FString::Printf(TEXT("agent`s %i position is %f %f %f"),
-				i,
-				one.position.X,
-				one.position.Y,
-				one.position.Z));
 			arr.Add(one);
 			arr.Add(one);
 			agents.Add(arr);
@@ -74,7 +69,6 @@ void AFlock::BeginPlay()
 	}
 	cnt = agents.Num();
 	FlockPosition /= cnt;
-	print(FString::Printf(TEXT("agents count is %i"), agents.Num()));
 	currentState = 1;
 	previousState = 0;
 }

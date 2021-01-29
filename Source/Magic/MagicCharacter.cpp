@@ -10,6 +10,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 #define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::White,text)
 
@@ -20,6 +21,9 @@ AMagicCharacter::AMagicCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+
+	// set multiplayer team
+	Team = None;
 
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
@@ -88,6 +92,17 @@ void AMagicCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AMagicCharacter::OnResetVR);
 }
 
+void AMagicCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AMagicCharacter, Team);
+}
+
+void AMagicCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 void AMagicCharacter::ServerThrowObjects_Implementation()
 {
 	ThrowObjects();
@@ -108,6 +123,7 @@ void AMagicCharacter::ThrowObjects()
 	{
 		return;
 	}
+	print(FString::Printf(TEXT("Your team is %d"), Team));
 	FVector Forward = GetActorForwardVector();
 	FVector PlayerLocation = GetActorLocation();
 	Forward.Normalize();
@@ -115,13 +131,19 @@ void AMagicCharacter::ThrowObjects()
 	float MinDistance = 5000.0f;
 	for (auto& Single : OutActors)
 	{
-		if (Single == this) {
+		if (Single == this)
+		{
+			continue;
+		}
+		AMagicCharacter* MagicCharacter = Cast<AMagicCharacter>(Single);
+		if (MagicCharacter == nullptr || MagicCharacter->Team == None || MagicCharacter->Team == Team)
+		{
 			continue;
 		}
 		FVector ToEnemy = Single->GetActorLocation() - GetActorLocation();
 		ToEnemy.Normalize();
 		float Angle = FMath::Acos(FVector::DotProduct(Forward, ToEnemy)) * 57.2958;
-		print(FString::Printf(TEXT("Angle to Enemy %f"), Angle));
+		print(FString::Printf(TEXT("Angle to Enemy %f, enemy team is %d"), Angle, MagicCharacter->Team));
 		if (Angle < 60.0 && ToEnemy.Size() < MinDistance) {
 			Enemy = Single;
 			MinDistance = ToEnemy.Size();
@@ -155,7 +177,7 @@ void AMagicCharacter::ThrowObjects()
 	}
 	FTimerDelegate CustomDelegate;
 	CustomDelegate.BindUFunction(this, FName("AddImpulse"), ThrowObjects, Enemy->GetActorLocation());
-	GetWorldTimerManager().SetTimer(FTimeBeforeAttack, CustomDelegate, 0.85, false);
+	GetWorldTimerManager().SetTimer(FTimeBeforeAttack, CustomDelegate, 1.25, false);
 	MagicSphere->SetSphereRadius(2.0);
 }
 

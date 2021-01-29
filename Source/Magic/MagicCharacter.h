@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Teams.h"
 #include "GameFramework/Character.h"
 #include "MagicCharacter.generated.h"
 
@@ -33,6 +34,9 @@ public:
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
+
+	UPROPERTY(Replicated, BlueprintReadWrite, meta = (ExposeOnSpawn = "true"), Category=Multiplayer)
+	TEnumAsByte<ETeams> Team;
 
 	UPROPERTY(VisibleAnywhere, Category=Components)
 	USphereComponent *MagicSphere;
@@ -98,6 +102,10 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+	virtual void BeginPlay() override;
 
 public:
 	/** Returns CameraBoom subobject **/

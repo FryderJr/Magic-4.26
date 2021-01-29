@@ -4,6 +4,8 @@
 #include "MagicCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
+#define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::White,text)
+
 AMagicGameMode::AMagicGameMode()
 {
 	// set default pawn class to our Blueprinted character
@@ -12,4 +14,9 @@ AMagicGameMode::AMagicGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
+}
+
+void AMagicGameMode::StartPlay()
+{
+	Super::StartPlay();
 }
