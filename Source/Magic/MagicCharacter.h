@@ -63,10 +63,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category=Magic)
 	void ForceWave();
 
+	UFUNCTION(Server, Reliable)
+	void ServerThrowFireball();
+
 	UFUNCTION(BlueprintCallable, Category=Magic)
 	void ThrowFireball();
 
-	UFUNCTION(BlueprintCallable, Category = Magic)
+	UFUNCTION(Server, Reliable)
+	void ServerCreateShield1();
+
+	UFUNCTION(BlueprintCallable, Category=Magic)
 	void CreateShield1();
 
 protected:

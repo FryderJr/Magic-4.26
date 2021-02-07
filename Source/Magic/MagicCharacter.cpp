@@ -231,8 +231,17 @@ void AMagicCharacter::ForceWave()
 	MagicSphere->SetSphereRadius(2.0f);
 }
 
+void AMagicCharacter::ServerThrowFireball_Implementation()
+{
+	ThrowFireball();
+}
+
 void AMagicCharacter::ThrowFireball()
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerThrowFireball();
+	}
 	FTransform FireballTransform;
 	FVector SpawnLoc = GetActorLocation() + GetActorForwardVector() * 55.0;
 	FActorSpawnParameters SpawnParameters;
@@ -246,8 +255,17 @@ void AMagicCharacter::ThrowFireball()
 	//UGameplayStatics::FinishSpawningActor(Fireballinstance, FireballTransform);
 }
 
+void AMagicCharacter::ServerCreateShield1_Implementation()
+{
+	CreateShield1();
+}
+
 void AMagicCharacter::CreateShield1()
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerCreateShield1();
+	}
 	FTransform ShieldTransform;
 	FVector SpawnLoc = GetActorLocation() + GetActorUpVector() * (-15.0);
 	FActorSpawnParameters SpawnParameters;
