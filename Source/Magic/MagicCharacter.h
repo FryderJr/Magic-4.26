@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Teams.h"
+#include "Flock.h"
 #include "GameFramework/Character.h"
 #include "MagicCharacter.generated.h"
 
@@ -47,8 +48,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Magic)
 	TSubclassOf<AActor> Shield1Class;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Magic)
+	TSubclassOf<AFlock> FlockClass;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Components)
 	TSubclassOf<AActor> DummyClass;
+
+	AActor* CreatedFlock;
+
+	AActor* CreatedShield;
+
+	AActor* FindEnemyInFront();
 
 	UFUNCTION(Server, Reliable)
 	void ServerThrowObjects();
@@ -69,11 +79,26 @@ public:
 	UFUNCTION(BlueprintCallable, Category=Magic)
 	void ThrowFireball();
 
+	UFUNCTION(BlueprintImplementableEvent, Category=Magic)
+	void ThrownFireball();
+
 	UFUNCTION(Server, Reliable)
 	void ServerCreateShield1();
 
 	UFUNCTION(BlueprintCallable, Category=Magic)
 	void CreateShield1();
+
+	UFUNCTION(Server, Reliable)
+	void ServerCreateFlock();
+
+	UFUNCTION(BlueprintCallable, Category=Magic)
+	void CreateFlock();
+
+	UFUNCTION()
+	void OnFlockDestroyed(AActor* DestroyedActor);
+
+	UFUNCTION()
+	void OnShieldDestroyed(AActor* DestroyedActor);
 
 protected:
 

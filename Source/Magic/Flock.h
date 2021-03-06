@@ -28,6 +28,8 @@ public:
 	// Sets default values for this actor's properties
 	AFlock();
 
+	void SetTarget(AActor* NewTarget);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -38,10 +40,15 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
 	USphereComponent* SphereComponent;*/
 
+	FTimerHandle FLifeTimeHandle;
+
 	FVector Direction;
 	FVector StartLocation;
 
 	TArray<TArray<FAgent>> agents;
+
+	UPROPERTY(BlueprintReadOnly, Category = Parameters)
+	AActor* Target;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Parameters)
 	TSubclassOf<AActor> agentsClass;
@@ -80,8 +87,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Parameters)
 	float rAlignment;
 
-
-	void CalcDirection();
+	UFUNCTION()
+	void Clear();
 
 public:	
 	// Called every frame

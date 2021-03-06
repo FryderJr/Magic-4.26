@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "MagicCharacter.h"
+#include "Flock.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -108,25 +109,18 @@ void AMagicCharacter::ServerThrowObjects_Implementation()
 	ThrowObjects();
 }
 
-void AMagicCharacter::ThrowObjects()
+AActor* AMagicCharacter::FindEnemyInFront()
 {
-	if (GetLocalRole() < ROLE_Authority)
-	{
-		ServerThrowObjects();
-	}
 	TArray<AActor*> OutActors;
-	TArray<UPrimitiveComponent*> OutComponents;
+	FVector Forward = GetActorForwardVector();
+	Forward.Normalize();
 	MagicSphere->SetSphereRadius(5000.0);
-	MagicSphere->GetOverlappingComponents(OutComponents);
 	MagicSphere->GetOverlappingActors(OutActors, APawn::StaticClass());
+	MagicSphere->SetSphereRadius(2.0);
 	if (OutActors.Num() <= 0)
 	{
-		return;
+		return nullptr;
 	}
-	print(FString::Printf(TEXT("Your team is %d"), Team));
-	FVector Forward = GetActorForwardVector();
-	FVector PlayerLocation = GetActorLocation();
-	Forward.Normalize();
 	AActor* Enemy = nullptr;
 	float MinDistance = 5000.0f;
 	for (auto& Single : OutActors)
@@ -149,6 +143,28 @@ void AMagicCharacter::ThrowObjects()
 			MinDistance = ToEnemy.Size();
 		}
 	}
+	return Enemy;
+}
+
+void AMagicCharacter::ThrowObjects()
+{
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerThrowObjects();
+	}
+	
+	TArray<UPrimitiveComponent*> OutComponents;
+	MagicSphere->SetSphereRadius(5000.0);
+	MagicSphere->GetOverlappingComponents(OutComponents);
+	
+	
+	print(FString::Printf(TEXT("Your team is %d"), Team));
+	
+	FVector PlayerLocation = GetActorLocation();
+	FVector Forward = GetActorForwardVector();
+	Forward.Normalize();
+	
+	AActor* Enemy = FindEnemyInFront();
 	if (Enemy == nullptr)
 	{
 		return;
@@ -242,6 +258,7 @@ void AMagicCharacter::ThrowFireball()
 	{
 		ServerThrowFireball();
 	}
+	ThrownFireball();
 	FTransform FireballTransform;
 	FVector SpawnLoc = GetActorLocation() + GetActorForwardVector() * 55.0;
 	FActorSpawnParameters SpawnParameters;
@@ -266,14 +283,64 @@ void AMagicCharacter::CreateShield1()
 	{
 		ServerCreateShield1();
 	}
+	if (CreatedShield != nullptr)
+	{
+		print(FString::Printf(TEXT("Shield is already created")));
+		return;
+	}
 	FTransform ShieldTransform;
 	FVector SpawnLoc = GetActorLocation() + GetActorUpVector() * (-15.0);
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	ShieldTransform.SetLocation(SpawnLoc);
 	ShieldTransform.SetRotation(GetActorRotation().Quaternion());
-	AActor* Shield = GetWorld()->SpawnActor<AActor>(Shield1Class, ShieldTransform, SpawnParameters);
+	CreatedShield = GetWorld()->SpawnActor<AActor>(Shield1Class, ShieldTransform, SpawnParameters);
+	CreatedShield->OnDestroyed.AddDynamic(this, &AMagicCharacter::OnShieldDestroyed);
 	//print(FString::Printf(TEXT("Shield name is %s"), *Shield->GetName()));
+}
+
+void AMagicCharacter::ServerCreateFlock_Implementation()
+{
+	CreateFlock();
+}
+
+void AMagicCharacter::CreateFlock()
+{
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerCreateFlock();
+	}
+	if (CreatedFlock != nullptr)
+	{
+		print(FString::Printf(TEXT("Flock is already created")));
+		return;
+	}
+	AActor* Enemy = FindEnemyInFront();
+	if (Enemy == nullptr)
+	{
+		print(FString::Printf(TEXT("Enemy not found")));
+		return;
+	}
+	FTransform FlockTransform;
+	FVector SpawnLoc = GetActorLocation();
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	FlockTransform.SetLocation(SpawnLoc);
+	FlockTransform.SetRotation(GetActorRotation().Quaternion());
+	AFlock* Flock = GetWorld()->SpawnActor<AFlock>(FlockClass, FlockTransform, SpawnParameters);
+	Flock->SetTarget(Enemy);
+	CreatedFlock = Flock;
+	CreatedFlock->OnDestroyed.AddDynamic(this, &AMagicCharacter::OnFlockDestroyed);
+}
+
+void AMagicCharacter::OnFlockDestroyed(AActor* DestroyedActor)
+{
+	CreatedFlock = nullptr;
+}
+
+void AMagicCharacter::OnShieldDestroyed(AActor* DestroyedActor)
+{
+	CreatedShield = nullptr;
 }
 
 void AMagicCharacter::OnResetVR()

@@ -26,6 +26,7 @@ void UMyMagicWidget::SynchronizeProperties()
 	FSpellPoints ThrowSpell;
 	FSpellPoints CircleThrowSpell;
 	FSpellPoints FireBallSpell;
+	FSpellPoints FlockSpell;
 	ShieldSpell.Points = {
 		0,
 		1
@@ -49,10 +50,15 @@ void UMyMagicWidget::SynchronizeProperties()
 		3,
 		4
 	};
+	FlockSpell.Points = {
+		2,
+		4
+	};
 	Spells.Add(TEXT("Shield"), ShieldSpell);
 	Spells.Add(TEXT("Throw"), ThrowSpell);
 	Spells.Add(TEXT("ForceWave"), CircleThrowSpell);
 	Spells.Add(TEXT("Fireball"), FireBallSpell);
+	Spells.Add(TEXT("Flock"), FlockSpell);
 	Images.Emplace(Point1);
 	Images.Emplace(Point2);
 	Images.Emplace(Point3);

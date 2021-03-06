@@ -34,6 +34,11 @@ AFlock::AFlock()
 
 }
 
+void AFlock::SetTarget(AActor* NewTarget)
+{
+	Target = NewTarget;
+}
+
 // Called when the game starts or when spawned
 void AFlock::BeginPlay()
 {
@@ -48,7 +53,7 @@ void AFlock::BeginPlay()
 			FVector(
 				FMath::RandRange(-spawnRadius, spawnRadius),
 				FMath::RandRange(-spawnRadius, spawnRadius),
-				FMath::RandRange(-spawnRadius, spawnRadius)
+				FMath::RandRange(-spawnRadius / 2, spawnRadius * 2)
 			)
 		);
 		agentTransform.SetRotation(GetActorRotation().Quaternion());
@@ -71,11 +76,26 @@ void AFlock::BeginPlay()
 	FlockPosition /= cnt;
 	currentState = 1;
 	previousState = 0;
+
+	FTimerDelegate CustomDelegate;
+	CustomDelegate.BindUFunction(this, FName("Clear"));
+	GetWorldTimerManager().SetTimer(FLifeTimeHandle, CustomDelegate, 10.5f, false);
 }
 
-void AFlock::CalcDirection()
+void AFlock::Clear()
 {
-	
+	for (int j = 0; j < cnt; j++)
+	{
+		agentObjects[j]->Destroy();
+	}
+	if (Destroy())
+	{
+		print(FString::Printf(TEXT("Flock is destroyed")));
+	}
+	else
+	{
+		print(FString::Printf(TEXT("Flock is indestructable")));
+	}
 }
 
 // Called every frame
@@ -87,22 +107,11 @@ void AFlock::Tick(float DeltaTime)
 
 	auto tempAgents = agents;
 
-	AActor* BestTargetToAttack = nullptr;
-	float NearestTargetDistance = FLT_MAX;
+	AActor* BestTargetToAttack = Target;
 
-	for (FConstPawnIterator iterator = GetWorld()->GetPawnIterator(); iterator; iterator++)
+	if (BestTargetToAttack == nullptr)
 	{
-		APawn* TestPawn = iterator->Get();
-		if (TestPawn == nullptr)
-		{
-			continue;
-		}
-		float Distance = (FlockPosition - TestPawn->GetActorLocation()).Size();
-		if (NearestTargetDistance > Distance)
-		{
-			BestTargetToAttack = TestPawn;
-			NearestTargetDistance = Distance;
-		}
+		return;
 	}
 
 	ParallelFor(cnt, [&tempAgents, &BestTargetToAttack, currentStateIndex, previousStateIndex, DeltaTime, this](int32 agentNum)
